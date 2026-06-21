@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Document Version="2">
+    <Protection InputFileName="bin\Release\driver_loader.exe" Options="499656" VMCodeSectionName=".MSW" VMComplexity="80" WaterMarkName="DeFexGG">
+        <Messages />
+        <Folders />
+        <Procedures>
+            <Procedure MapAddress='VMProtectMarker &quot;auth_core&quot;' Options="0" CompilationType="2" Complexity="80" />
+            <Procedure MapAddress='VMProtectMarker &quot;stop_driver&quot;' Options="0" CompilationType="2" Complexity="80" />
+            <Procedure MapAddress='VMProtectMarker &quot;unload_driver&quot;' Options="0" CompilationType="2" Complexity="80" />
+            <Procedure MapAddress='VMProtectMarker &quot;DSEBypass::Restore&quot;' Options="0" CompilationType="2" Complexity="80" />
+            <Procedure MapAddress='VMProtectMarker &quot;kvc_session::InitDynamicAPIs&quot;' Options="0" CompilationType="2" Complexity="80" />
+            <Procedure MapAddress='VMProtectMarker &quot;kvc_session::BeginSession&quot;' Options="0" CompilationType="2" Complexity="80" />
+            <Procedure MapAddress='VMProtectMarker &quot;embedded::Init&quot;' Options="0" CompilationType="2" Complexity="80" />
+            <Procedure MapAddress='VMProtectMarker &quot;wWinMain&quot;' Options="0" CompilationType="1" Complexity="60" />
+            <Procedure MapAddress='VMProtectMarker &quot;CreateDeviceD3D&quot;' Options="0" CompilationType="1" Complexity="60" />
+            <Procedure MapAddress='VMProtectMarker &quot;loader_thread&quot;' Options="0" CompilationType="1" Complexity="60" />
+            <Procedure MapAddress='VMProtectMarker &quot;launch_payload&quot;' Options="0" CompilationType="1" Complexity="60" />
+            <Procedure MapAddress='VMProtectMarker &quot;kvc_session::EndSession&quot;' Options="0" CompilationType="1" Complexity="60" />
+            <Procedure MapAddress='VMProtectMarker &quot;embedded::Cleanup&quot;' Options="0" CompilationType="1" Complexity="60" />
+            <Procedure MapAddress='VMProtectMarker &quot;DSEBypass::Disable&quot;' Options="0" CompilationType="2" />
+        </Procedures>
+        <Objects />
+    </Protection>
+    <Script />
+</Document>

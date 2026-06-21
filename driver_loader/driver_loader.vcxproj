@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{C1D2E3F4-A5B6-7C8D-9E0F-123456789ABC}</ProjectGuid>
+    <RootNamespace>driver_loader</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>driver_loader</ProjectName>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <!-- ── Debug ── -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+
+  <!-- ── Release ── -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <!-- WholeProgramOptimization disabled: LTCG (/GL+/LTCG) inlines VMP-marked
+         functions into their call-sites, causing VMProtect "Address is already used"
+         errors. ICF is also disabled in the linker. Together these ensure every
+         VMP-marked function retains a unique entry-point address. -->
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <!-- ── Output dirs ── -->
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+    <TargetName>driver_loader</TargetName>
+  </PropertyGroup>
+
+  <!-- ── Common compiler settings ── -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <!-- ImGui root + ImGui backends -->
+      <AdditionalIncludeDirectories>
+        $(ProjectDir);
+        $(ProjectDir)src;
+        ..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui;
+        ..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui\backends;
+        %(AdditionalIncludeDirectories)
+      </AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>
+        UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;NOMINMAX;IMGUI_LAZY_API;%(PreprocessorDefinitions)
+      </PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>
+        dwmapi.lib;shlwapi.lib;psapi.lib;bcrypt.lib;%(AdditionalDependencies)
+      </AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Message>Building MidnightSoftware driver + SDK, encrypting resources...</Message>
+      <Command>powershell.exe -ExecutionPolicy Bypass -NonInteractive -File "$(ProjectDir)encrypt_bins.ps1" -Configuration "$(Configuration)" -Platform "$(Platform)" -SkipBuild</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+
+  <!-- ── Debug overrides ── -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <!-- ── Release overrides ── -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PreprocessorDefinitions>NDEBUG;VMP_ENABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <!-- ICF (Identical COMDAT Folding) disabled: VMProtect requires every
+           VMP-marked function to have a unique entry-point address. ICF merges
+           functions with identical machine code which causes VMProtect to report
+           "Address is already used by function" and abort protection. -->
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>VMProtectSDK64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\DeFexGG\Downloads\VMProtect\VMProtect\Lib\Windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(OutDir)driver_loader.map</MapFileName>
+    </Link>
+    <PostBuildEvent>
+      <Message>VMProtect: Applying maximum protection to release binary...</Message>
+      <Command>IF EXIST "$(VMPROTECT_EXE)" (
+  "$(VMPROTECT_EXE)" "$(ProjectDir)driver_loader.vmp"
+  IF ERRORLEVEL 1 ECHO [VMP] Warning: VMProtect exited with an error - binary is unprotected
+) ELSE IF EXIST "C:\Users\DeFexGG\Downloads\VMProtect\VMProtect\VMProtect_Con.exe" (
+  "C:\Users\DeFexGG\Downloads\VMProtect\VMProtect\VMProtect_Con.exe" "$(ProjectDir)driver_loader.vmp"
+  IF ERRORLEVEL 1 ECHO [VMP] Warning: VMProtect exited with an error - binary is unprotected
+) ELSE (
+  ECHO [VMP] VMProtect_Con.exe not found - skipping protection step
+)
+EXIT /B 0</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+
+  <!-- ══════════════════════════════ Files ══════════════════════════════════ -->
+  <ItemGroup>
+    <!-- Loader sources -->
+    <ClCompile Include="main.cpp" />
+
+    <!-- Dear ImGui core -->
+    <!-- IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS: suppresses imm32.lib and all ImmXxx calls (IAT hiding) -->
+    <ClCompile Include="..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui\imgui.cpp">
+      <PreprocessorDefinitions>IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui\imgui_widgets.cpp" />
+    <!-- Dear ImGui backends -->
+    <ClCompile Include="..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\..\Menus\War_Thunder\war_thunder_sdk\lib\imgui\backends\imgui_impl_dx11.cpp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ResourceCompile Include="driver_loader.rc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Encrypted resource binaries (generated by encrypt_bins.ps1, do not commit) -->
+    <None Include="kvc.bin" />
+    <None Include="MidnightSoftwareDriver.bin" />
+    <None Include="MidnightSoftware.bin" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Loader headers -->
+    <ClInclude Include="src\resource.h" />
+    <ClInclude Include="src\crypto_key.hpp" />
+    <ClInclude Include="src\embedded.hpp" />
+    <ClInclude Include="src\includes.hpp" />
+    <ClInclude Include="src\auth.hpp" />
+    <ClInclude Include="src\driver_mgr.hpp" />
+    <ClInclude Include="src\kvc_drv.hpp" />
+    <ClInclude Include="src\dse_bypass.hpp" />
+    <ClInclude Include="src\kvc_session.hpp" />
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+</Project>
